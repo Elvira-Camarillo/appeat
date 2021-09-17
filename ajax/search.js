@@ -1,108 +1,109 @@
-const API_URL = "http://ec2-18-191-185-147.us-east-2.compute.amazonaws.com/api/";
+const API_URL = "https://appeateasier.autodev.studio/api/"
 
-let user_profile_id = 0
-let my_json_list = []
-let busqueda = " "
-let busquedaMv = " "
-const getSearch = async(search, searchNeeded) => {
-    let url = ""
-    try {
-        if (searchNeeded) {
-            url = `${API_URL}recipes/?search=${search}`
-        } else {
+let myForm = document.querySelector('#formLogin')
 
-            url = `${API_URL}recipes/?search=${busqueda}`
-        }
-        const response = await fetch(`${API_URL}recipes/?search=${search}`, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
+var myModal1 = new bootstrap.Modal(document.getElementById('myModalLogin'), { keyboard: false })
+myModal1._element.querySelector("#modal_continue").style.display = "none"
+myModal1._element.querySelector("#modal_back").style.display = "none"
 
-        const data = await response.json()
-        console.log(data)
+// Local Storage to reduce number of server´s requests
+function saveUserProfile(myJSON) {
+    localStorage.clear();
 
-        return data
+    for ([key, value] of Object.entries(myJSON)) {
+        localStorage.setItem(key, value);
+        console.log("mi item key is: " + key);
+        console.log("my value is: " + value);
+    }
+}
 
-    } catch (error) {
-        console.log(error)
+function modalHandler() {
+
+    if (localStorage.length > 1) {
+        myModal1._element.querySelector('#modal_message').innerText = "BIENVENIDO !!! Por favor presiona siguiente"
+        myModal1._element.querySelector("#modal_continue").style.display = "block"
+    } else {
+        myModal1._element.querySelector('#modal_message').innerText = "Por favor revisa tus datos de nuevo"
+        myModal1._element.querySelector("#modal_back").style.display = "block"
     }
 
 }
 
-function populate_nodes(n) {
+// Form Data Retrieve
+function getFormData() {
 
-    let titleSearch = document.querySelector(".title-search")
-    titleSearch.innerText = my_json_list[i].meal_type
-    let childs = document.querySelectorAll(".json_item")
-    for (let i = 0; i < childs.length; i++) {
-        //  childs[i].
+    let user_profile = {}
 
-        this_attr = my_json_list[i].id
-        childs[i].setAttribute("id", this_attr)
+    let username = myForm.querySelector('#myUserName').value
+    let password = myForm.querySelector('#myPassword').value
 
-        this_attr = my_json_list[i].pic_url
-        childs[i].querySelectorAll(".json_node .pic_url")[0].setAttribute("src", this_attr)
+    user_profile = {...user_profile, username }
+    user_profile = {...user_profile, password }
 
-        this_attr = my_json_list[i].title
-        childs[i].querySelectorAll(".title")[0].innerText = this_attr
-
-        this_attr = my_json_list[i].meal_type
-        childs[i].querySelectorAll(".meal_type")[0].innerText = this_attr
-    }
-
-
-
-    //this_attr = my_json_list[n].cat_recipe.level
-    //my_container.lastElementChild.querySelectorAll(".level")[0].innerText = this_attr
+    return user_profile
 
 }
 
-function clone_html_item() {
-    let my_item = `<div class="card card-2 mb-3 p-0 col-12 col-md-5 flex-wrap json_item" id="">
-    <div class="row g-0">
-        <div class="col-4 col-md-6 ps-0">
-            <a href="detalle_receta.html" class="json_node">
-                <img src="./assets/fotos/pollo-papas.jpg" class="img-small img-fluid g-0 json_node pic_url" alt="pollo" />
-            </a>
-        </div>
 
-        <div class="col-8 col-md-6">
-            <div class="card-body  d-flex flex-column  justify-content-between">
-                <div class="d-flex  ">
-                    <h5 class="card-title  json_node title">
-                        Pollo con papas
-                    </h5>
-                
-                </div>
+// AJAX Comms to End-Point
+const postFetch = async(postData) => {
 
-                <div class="row">
-                    <p class="card-text d-fex json_node_value json_node meal_type">
-                        Meal Type
-                    </p>
-                    <div class="d-flex  justify-content-between">
-                        <svg width="28" height="25" viewBox="0 0 28 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M25.0687 1.75686C21.9078 -0.884795 17.0242 -0.488004 14 2.57218C10.9758 -0.488004 6.09219 -0.890231 2.93125 1.75686C-1.18124 5.19753 -0.579681 10.807 2.35157 13.7802L11.9437 23.4934C12.4906 24.0478 13.2234 24.3577 14 24.3577C14.782 24.3577 15.5094 24.0533 16.0562 23.4989L25.6484 13.7856C28.5742 10.8124 29.1867 5.20296 25.0687 1.75686ZM23.7781 11.9484L14.1859 21.6617C14.0547 21.7921 13.9453 21.7921 13.8141 21.6617L4.22188 11.9484C2.22579 9.92641 1.8211 6.09982 4.6211 3.75712C6.74844 1.97971 10.0297 2.24605 12.0859 4.32785L14 6.26832L15.9141 4.32785C17.9812 2.23518 21.2625 1.97971 23.3789 3.75169C26.1734 6.09439 25.7578 9.94272 23.7781 11.9484Z"
-                                fill="#E30C0C" />
-                        </svg>
-                        <section class="d-flex">
-                            <p class="card-level me-2 json_node level">Bajo</p>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#FF8908" class="bi bi-bar-chart-fill" viewBox="0 0 16 16">
-                                <path
-                                    d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3zm5-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2z" />
-                            </svg>
-                        </section>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>`;
-    let newItem = document.createElement('div');
-    my_container.appendChild(newItem);
+    const data = await fetch(`${API_URL}users/login/`, {
+        method: "Post",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postData)
+    })
 
-    my_container.lastElementChild.outerHTML = my_item
+    const dataResult = await data.json()
+
+    console.log(dataResult)
+    saveUserProfile(dataResult)
+
+    return dataResult
+}
+
+
+// Event Handler
+myForm.addEventListener('submit', (e) => {
+
+    e.preventDefault()
+    e.stopPropagation()
+
+    let userData = getFormData()
+        // console.log("Form Data Result: ", userData)
+
+    let myResponse = postFetch(userData)
+
+    myResponse.then(console.log("Ajax Response Result: ", myResponse.data))
+    myResponse.then(myModal1.show())
+    myResponse.then(setTimeout(() => { modalHandler() }, 2000))
+    myResponse.catch((error) => console.log(error))
+
+    //myResponse.then(console.log("SUCESS"),console.log("Something Wrong"))
+    //window.location.href = "people_amount.html" // If I enable this promise its interrupted and localStorage as well
+})
+
+/* 
+-------------------------------------------------
+    Algorithm description for this ajax 
+-------------------------------------------------
+
+1. user data introduction into form
+2. user data validation
+3. submit btn add event listener
+4. prevent default
+5. user data into json format
+6. ajax comms to endpoint
+7. catch BE response
+8. store user ID into localstorage
+9. redirect to the next page
+
+*/
+my_container.appendChild(newItem);
+
+my_container.lastElementChild.outerHTML = my_item
 
 }
 

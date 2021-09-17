@@ -1,114 +1,115 @@
-const API_URL = "http://ec2-18-191-185-147.us-east-2.compute.amazonaws.com/api/"
+const API_URL = "https://appeateasier.autodev.studio/api/"
 
-let olla_de_presion = document.querySelector('#olla_de_presion')
-let licuadora = document.querySelector('#licuadora')
-let microondas = document.querySelector('#microondas')
-let horno = document.querySelector('#horno')
-let procesador = document.querySelector('#procesador')
-let estufa = document.querySelector('#estufa')
+let myForm = document.querySelector('#formLogin')
 
-let lockFunctions = false
-let kitchenDict = []
-let kitchenSelected = [""]
+var myModal1 = new bootstrap.Modal(document.getElementById('myModalLogin'), { keyboard: false })
+myModal1._element.querySelector("#modal_continue").style.display = "none"
+myModal1._element.querySelector("#modal_back").style.display = "none"
 
-let kitchenIcon = {
-    "olla_de_presion": "pressed",
-    "licuadora": "check",
-    "microondas": "check",
-    "horno": "pressed",
-    "procesador": "pressed",
-    "estufa": "check"
+// Local Storage to reduce number of server´s requests
+function saveUserProfile(myJSON) {
+    localStorage.clear();
+
+    for ([key, value] of Object.entries(myJSON)) {
+        localStorage.setItem(key, value);
+        console.log("mi item key is: " + key);
+        console.log("my value is: " + value);
+    }
+}
+
+function modalHandler() {
+
+    if (localStorage.length > 1) {
+        myModal1._element.querySelector('#modal_message').innerText = "BIENVENIDO !!! Por favor presiona siguiente"
+        myModal1._element.querySelector("#modal_continue").style.display = "block"
+    } else {
+        myModal1._element.querySelector('#modal_message').innerText = "Por favor revisa tus datos de nuevo"
+        myModal1._element.querySelector("#modal_back").style.display = "block"
+    }
+
+}
+
+// Form Data Retrieve
+function getFormData() {
+
+    let user_profile = {}
+
+    let username = myForm.querySelector('#myUserName').value
+    let password = myForm.querySelector('#myPassword').value
+
+    user_profile = {...user_profile, username }
+    user_profile = {...user_profile, password }
+
+    return user_profile
+
 }
 
 
-// -------------------------------------------------------------------------------------------------------------------
+// AJAX Comms to End-Point
+const postFetch = async(postData) => {
 
-olla_de_presion.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
+    const data = await fetch(`${API_URL}users/login/`, {
+        method: "Post",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postData)
+    })
 
-    if (lockFunctions === false) {
+    const dataResult = await data.json()
 
-        if (e.target.classList.contains('pressed')) {
+    console.log(dataResult)
+    saveUserProfile(dataResult)
 
-            e.target.classList.remove('pressed')
+    return dataResult
+}
 
-        } else {
-            e.target.classList.add('pressed')
-        }
-    }
+
+// Event Handler
+myForm.addEventListener('submit', (e) => {
+
+    e.preventDefault()
+    e.stopPropagation()
+
+    let userData = getFormData()
+        // console.log("Form Data Result: ", userData)
+
+    let myResponse = postFetch(userData)
+
+    myResponse.then(console.log("Ajax Response Result: ", myResponse.data))
+    myResponse.then(myModal1.show())
+    myResponse.then(setTimeout(() => { modalHandler() }, 2000))
+    myResponse.catch((error) => console.log(error))
+
+    //myResponse.then(console.log("SUCESS"),console.log("Something Wrong"))
+    //window.location.href = "people_amount.html" // If I enable this promise its interrupted and localStorage as well
 })
 
-licuadora.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
+/* 
+-------------------------------------------------
+    Algorithm description for this ajax 
+-------------------------------------------------
 
-    if (lockFunctions === false) {
+1. user data introduction into form
+2. user data validation
+3. submit btn add event listener
+4. prevent default
+5. user data into json format
+6. ajax comms to endpoint
+7. catch BE response
+8. store user ID into localstorage
+9. redirect to the next page
 
-        if (e.target.classList.contains('check')) {
+*/
+if (lockFunctions === false) {
+    if (e.target.classList.contains('check')) {
 
-            e.target.classList.remove('check')
+        e.target.classList.remove('check')
 
-        } else {
-            e.target.classList.add('check')
-        }
+    } else {
+        e.target.classList.add('check')
     }
-})
-
-microondas.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
-
-    if (lockFunctions === false) {
-        if (e.target.classList.contains('check')) {
-
-            e.target.classList.remove('check')
-
-        } else {
-            e.target.classList.add('check')
-        }
-    }
-})
-
-horno.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
-
-    if (lockFunctions === false) {
-        if (e.target.classList.contains('pressed')) {
-
-            e.target.classList.remove('pressed')
-
-        } else {
-            e.target.classList.add('pressed')
-        }
-    }
-})
-
-procesador.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
-
-    if (lockFunctions === false) {
-
-        if (e.target.classList.contains('pressed')) {
-
-            e.target.classList.remove('pressed')
-
-        } else {
-            e.target.classList.add('pressed')
-        }
-    }
-})
-
-
-estufa.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
-
-    if (lockFunctions === false) {
-        if (e.target.classList.contains('check')) {
-
-            e.target.classList.remove('check')
-
-        } else {
-            e.target.classList.add('check')
-        }
-    }
+}
 })
 
 

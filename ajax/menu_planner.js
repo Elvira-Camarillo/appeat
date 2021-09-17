@@ -1,110 +1,110 @@
-const API_URL = "http://ec2-18-191-185-147.us-east-2.compute.amazonaws.com/api/";
+const API_URL = "https://appeateasier.autodev.studio/api/"
 
-let user_profile_id = 1
-let user_planner_id = 5
-let recipe_id = 3
-let my_json_list = []
+let myForm = document.querySelector('#formLogin')
 
-let welcome = document.getElementById('user_welcome')
+var myModal1 = new bootstrap.Modal(document.getElementById('myModalLogin'), { keyboard: false })
+myModal1._element.querySelector("#modal_continue").style.display = "none"
+myModal1._element.querySelector("#modal_back").style.display = "none"
 
-if (localStorage.length > 1) {
-    welcome.innerText = "Hola " + localStorage.user
+// Local Storage to reduce number of server´s requests
+function saveUserProfile(myJSON) {
+    localStorage.clear();
+
+    for ([key, value] of Object.entries(myJSON)) {
+        localStorage.setItem(key, value);
+        console.log("mi item key is: " + key);
+        console.log("my value is: " + value);
+    }
 }
 
-const getRecipeByID = async() => {
+function modalHandler() {
 
-    try {
-        const response = await fetch(`${API_URL}users/${localStorage.id}/planners/${localStorage.user_planner_id}/menu/`, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-
-        const data = await response.json()
-            //console.log(data)
-
-        return data
-
-    } catch (error) {
-        console.log(error)
+    if (localStorage.length > 1) {
+        myModal1._element.querySelector('#modal_message').innerText = "BIENVENIDO !!! Por favor presiona siguiente"
+        myModal1._element.querySelector("#modal_continue").style.display = "block"
+    } else {
+        myModal1._element.querySelector('#modal_message').innerText = "Por favor revisa tus datos de nuevo"
+        myModal1._element.querySelector("#modal_back").style.display = "block"
     }
 
 }
 
-function populate_nodes_header(n) {
+// Form Data Retrieve
+function getFormData() {
 
-    console.log("My function name is populate nodes header")
+    let user_profile = {}
 
-    this_attr = my_json_list[0].user_planner.plan_title
-    my_container.querySelector(".planner_title").innerText = this_attr
+    let username = myForm.querySelector('#myUserName').value
+    let password = myForm.querySelector('#myPassword').value
 
-    this_attr = my_json_list[0].user_planner.period
-    my_container.querySelector(".period").innerText = this_attr
+    user_profile = {...user_profile, username }
+    user_profile = {...user_profile, password }
 
-}
-
-function populate_nodes_meals(n) {
-
-    //console.log("My function name is populate nodes meals")
-
-    this_attr = my_json_list[n].user_recipe.cat_recipe.title
-    my_container.querySelector("." + my_json_list[n].meal_type).querySelector(".title").innerText = this_attr
-
-    this_attr = my_json_list[n].user_recipe.cat_recipe.pic_url
-    my_container.querySelector("." + my_json_list[n].meal_type).querySelector(".pic_url").setAttribute("src", this_attr)
-
-
-    this_attr = my_json_list[n].user_recipe.cat_recipe.level
-    my_container.querySelector("." + my_json_list[n].meal_type).querySelector(".level").innerText = this_attr
-
-    my_container.querySelector("." + my_json_list[n].meal_type).querySelector(".pic_url").dataset.catrecipe = my_json_list[n].user_recipe.cat_recipe.id
-}
-
-function clone_html_item() {
-
-    my_item = document.createElement("div")
-    my_container.appendChild(my_item)
-
-    my_container.lastElementChild.outerHTML = my_container.firstElementChild.outerHTML
+    return user_profile
 
 }
 
-// the callback needs to be without parenthesis
-function container_handler(my_container_name, target_date, populate_nodes) {
 
-    my_container = document.querySelector(my_container_name)
-    my_template_item = my_container.children[0]
+// AJAX Comms to End-Point
+const postFetch = async(postData) => {
 
-    json_items_num = my_json_list.length
-    console.log("container_handler with " + json_items_num + " items")
-    console.log("my json list start date:" + Date.parse(target_date))
+    const data = await fetch(`${API_URL}users/login/`, {
+        method: "Post",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postData)
+    })
+
+    const dataResult = await data.json()
+
+    console.log(dataResult)
+    saveUserProfile(dataResult)
+
+    return dataResult
+}
 
 
-    if (my_container_name == ".json_container0") {
+// Event Handler
+myForm.addEventListener('submit', (e) => {
 
-        populate_nodes(0)
+    e.preventDefault()
+    e.stopPropagation()
 
-    } else if (my_container_name == ".json_container1") {
+    let userData = getFormData()
+        // console.log("Form Data Result: ", userData)
 
-        if (json_items_num > 1) {
+    let myResponse = postFetch(userData)
 
-            for (i = 0; i < json_items_num; i++) {
+    myResponse.then(console.log("Ajax Response Result: ", myResponse.data))
+    myResponse.then(myModal1.show())
+    myResponse.then(setTimeout(() => { modalHandler() }, 2000))
+    myResponse.catch((error) => console.log(error))
 
-                let my_json_date = new Date(my_json_list[i].meal_date)
-                    // console.log("my_json_date: " + my_json_date)
-                let my_picker_date = new Date(target_date)
-                    // console.log("my_picker_date: " + my_picker_date)
+    //myResponse.then(console.log("SUCESS"),console.log("Something Wrong"))
+    //window.location.href = "people_amount.html" // If I enable this promise its interrupted and localStorage as well
+})
 
-                if (my_json_date.toLocaleDateString() == my_picker_date.toLocaleDateString()) {
+/* 
+-------------------------------------------------
+    Algorithm description for this ajax 
+-------------------------------------------------
 
-                    populate_nodes(i)
+1. user data introduction into form
+2. user data validation
+3. submit btn add event listener
+4. prevent default
+5. user data into json format
+6. ajax comms to endpoint
+7. catch BE response
+8. store user ID into localstorage
+9. redirect to the next page
 
-                }
+*/
+}
+}
 
-            }
-        }
-
-    }
+}
 
 }
 
