@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000/api/";
+const API_URL = "http://ec2-18-191-185-147.us-east-2.compute.amazonaws.com/api/";
 
 
 const getUsers = async() => {
