@@ -1,5 +1,4 @@
-console.log("hola")
-const API_URL = "http://localhost:8000/api/"
+const API_URL = "https://appeateasier.autodev.studio/api/";
 
 //pereferred_food
 

@@ -1,5 +1,4 @@
-const API_URL = "http://localhost:8000/api/";
-
+const API_URL = "https://appeateasier.autodev.studio/api/";
 let user_profile_id = 1;
 let my_json_list = [];
 let my_user = {};
