@@ -1,6 +1,0 @@
-applications:
-  - name: AppEatEasier
-    memory: 128M
-    stalck: cflinuxfs3
-    buildpack: staticfile_buildpack
-    random-route: true
