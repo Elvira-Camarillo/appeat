@@ -1,38 +1,46 @@
-const API_URL = "http://ec2-18-191-185-147.us-east-2.compute.amazonaws.com/api/";
+const API_URL = "https://appeateasier.autodev.studio/api/"
 
-let my_json_list = []
+let myForm = document.querySelector('#formLogin')
 
-let myForm = document.querySelector('#newMenuForm')
-var myModal1 = new bootstrap.Modal(document.getElementById('menuCreateModal1'), { keyboard: false })
-
+var myModal1 = new bootstrap.Modal(document.getElementById('myModalLogin'), { keyboard: false })
 myModal1._element.querySelector("#modal_continue").style.display = "none"
 myModal1._element.querySelector("#modal_back").style.display = "none"
 
-// USER ID INITIAL CONFIGURATION
+// Local Storage to reduce number of server´s requests
+function saveUserProfile(myJSON) {
+    localStorage.clear();
 
-let welcome = document.getElementById('user_welcome')
-
-if (localStorage.length > 1) {
-    welcome.innerText = "Hola " + localStorage.user
+    for ([key, value] of Object.entries(myJSON)) {
+        localStorage.setItem(key, value);
+        console.log("mi item key is: " + key);
+        console.log("my value is: " + value);
+    }
 }
 
-const getMenuGenerator = async() => {
+function modalHandler() {
 
-    try {
-        const response = await fetch(`${API_URL}users/${localStorage.id}/planners/`, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-
-        const data = await response.json()
-            //console.log(data)
-
-        return data
-
-    } catch (error) {
-        console.log(error)
+    if (localStorage.length > 1) {
+        myModal1._element.querySelector('#modal_message').innerText = "BIENVENIDO !!! Por favor presiona siguiente"
+        myModal1._element.querySelector("#modal_continue").style.display = "block"
+    } else {
+        myModal1._element.querySelector('#modal_message').innerText = "Por favor revisa tus datos de nuevo"
+        myModal1._element.querySelector("#modal_back").style.display = "block"
     }
+
+}
+
+// Form Data Retrieve
+function getFormData() {
+
+    let user_profile = {}
+
+    let username = myForm.querySelector('#myUserName').value
+    let password = myForm.querySelector('#myPassword').value
+
+    user_profile = {...user_profile, username }
+    user_profile = {...user_profile, password }
+
+    return user_profile
 
 }
 
@@ -40,7 +48,7 @@ const getMenuGenerator = async() => {
 // AJAX Comms to End-Point
 const postFetch = async(postData) => {
 
-    const data = await fetch(`${API_URL}users/profiles/planner/`, {
+    const data = await fetch(`${API_URL}users/login/`, {
         method: "Post",
         headers: {
             "Content-Type": "application/json",
@@ -49,58 +57,50 @@ const postFetch = async(postData) => {
     })
 
     const dataResult = await data.json()
-    localStorage.setItem("user_planner_id", dataResult.id)
-        //console.log("Data Result from Post Fetch: ", dataResult)
 
-    //saveUserProfile(dataResult) -> according to response this function would change
+    console.log(dataResult)
+    saveUserProfile(dataResult)
 
     return dataResult
 }
 
 
-function populate_nodes(n) {
+// Event Handler
+myForm.addEventListener('submit', (e) => {
 
-    this_attr = my_json_list[n].id
-    my_container.lastElementChild.setAttribute("id", this_attr) //no se toca 
+    e.preventDefault()
+    e.stopPropagation()
 
-    this_attr = my_json_list[n].plan_title
+    let userData = getFormData()
+        // console.log("Form Data Result: ", userData)
 
-    //console.log(this_attr)
-    my_container.lastElementChild.querySelectorAll(".plan_title")[0].innerText = this_attr
+    let myResponse = postFetch(userData)
 
-}
+    myResponse.then(console.log("Ajax Response Result: ", myResponse.data))
+    myResponse.then(myModal1.show())
+    myResponse.then(setTimeout(() => { modalHandler() }, 2000))
+    myResponse.catch((error) => console.log(error))
 
-function clone_html_item() {
+    //myResponse.then(console.log("SUCESS"),console.log("Something Wrong"))
+    //window.location.href = "people_amount.html" // If I enable this promise its interrupted and localStorage as well
+})
 
-    my_item = document.createElement("div")
-    my_container.appendChild(my_item)
+/* 
+-------------------------------------------------
+    Algorithm description for this ajax 
+-------------------------------------------------
 
-    my_container.lastElementChild.outerHTML = my_container.firstElementChild.outerHTML
+1. user data introduction into form
+2. user data validation
+3. submit btn add event listener
+4. prevent default
+5. user data into json format
+6. ajax comms to endpoint
+7. catch BE response
+8. store user ID into localstorage
+9. redirect to the next page
 
-}
-
-const transfer_retrieve = async() => {
-
-    my_json_list = await getMenuGenerator();
-    json_items_num = my_json_list.length
-
-    if (json_items_num > 1) {
-
-        for (i = 0; i < json_items_num; i++) {
-
-            populate_nodes(i)
-
-            if (i < json_items_num - 1) {
-                clone_html_item()
-            }
-        }
-
-    } else {
-        populate_nodes(0)
-    }
-
-    //console.log("transfer retrieve")
-
+*/
 }
 
 function generateWeekNum(start_date) {

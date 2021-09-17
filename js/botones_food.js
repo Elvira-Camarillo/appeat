@@ -1,110 +1,111 @@
-const API_URL = "http://ec2-18-191-185-147.us-east-2.compute.amazonaws.com/api/"
+const API_URL = "https://appeateasier.autodev.studio/api/"
 
-//pereferred_food
+let myForm = document.querySelector('#formLogin')
 
-let res = document.querySelector('#res')
-let pollo = document.querySelector('#pollo')
-let cerdo = document.querySelector('#cerdo')
-let pescado = document.querySelector('#pescado')
-let huevo = document.querySelector('#huevo')
-let lacteos = document.querySelector('#lacteos')
-let frutas = document.querySelector('#frutas')
-let verduras = document.querySelector('#verduras')
-let gluten = document.querySelector('#gluten')
+var myModal1 = new bootstrap.Modal(document.getElementById('myModalLogin'), { keyboard: false })
+myModal1._element.querySelector("#modal_continue").style.display = "none"
+myModal1._element.querySelector("#modal_back").style.display = "none"
 
-let lockFunctions = false
-let foodDict = []
+// Local Storage to reduce number of server´s requests
+function saveUserProfile(myJSON) {
+    localStorage.clear();
 
+    for ([key, value] of Object.entries(myJSON)) {
+        localStorage.setItem(key, value);
+        console.log("mi item key is: " + key);
+        console.log("my value is: " + value);
+    }
+}
 
+function modalHandler() {
 
-let foodIcon = {
-    "res": "check",
-    "pollo": "check",
-    "cerdo": "check",
-    "pescado": "check",
-    "huevo": "check",
-    "lacteos": "check",
-    "frutas": "check",
-    "verduras": "check",
-    "gluten": "check"
+    if (localStorage.length > 1) {
+        myModal1._element.querySelector('#modal_message').innerText = "BIENVENIDO !!! Por favor presiona siguiente"
+        myModal1._element.querySelector("#modal_continue").style.display = "block"
+    } else {
+        myModal1._element.querySelector('#modal_message').innerText = "Por favor revisa tus datos de nuevo"
+        myModal1._element.querySelector("#modal_back").style.display = "block"
+    }
+
+}
+
+// Form Data Retrieve
+function getFormData() {
+
+    let user_profile = {}
+
+    let username = myForm.querySelector('#myUserName').value
+    let password = myForm.querySelector('#myPassword').value
+
+    user_profile = {...user_profile, username }
+    user_profile = {...user_profile, password }
+
+    return user_profile
+
 }
 
 
+// AJAX Comms to End-Point
+const postFetch = async(postData) => {
+
+    const data = await fetch(`${API_URL}users/login/`, {
+        method: "Post",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postData)
+    })
+
+    const dataResult = await data.json()
+
+    console.log(dataResult)
+    saveUserProfile(dataResult)
+
+    return dataResult
+}
 
 
-// FOOD ICONS EVENT HANDLERS
+// Event Handler
+myForm.addEventListener('submit', (e) => {
 
+    e.preventDefault()
+    e.stopPropagation()
 
-res.addEventListener('click', (e) => {
+    let userData = getFormData()
+        // console.log("Form Data Result: ", userData)
 
-    //console.log(e.target.classList)
+    let myResponse = postFetch(userData)
 
-    if (lockFunctions === false) {
-        if (e.target.classList.contains('check')) {
+    myResponse.then(console.log("Ajax Response Result: ", myResponse.data))
+    myResponse.then(myModal1.show())
+    myResponse.then(setTimeout(() => { modalHandler() }, 2000))
+    myResponse.catch((error) => console.log(error))
 
-            e.target.classList.remove('check')
-
-        } else {
-            e.target.classList.add('check')
-        } // e.target.classList
-    }
+    //myResponse.then(console.log("SUCESS"),console.log("Something Wrong"))
+    //window.location.href = "people_amount.html" // If I enable this promise its interrupted and localStorage as well
 })
 
+/* 
+-------------------------------------------------
+    Algorithm description for this ajax 
+-------------------------------------------------
 
-pollo.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
+1. user data introduction into form
+2. user data validation
+3. submit btn add event listener
+4. prevent default
+5. user data into json format
+6. ajax comms to endpoint
+7. catch BE response
+8. store user ID into localstorage
+9. redirect to the next page
 
-    if (lockFunctions === false) {
-        if (e.target.classList.contains('check')) {
-
-            e.target.classList.remove('check')
-
-        } else {
-            e.target.classList.add('check')
-        }
-        // e.target.classList
-    }
-})
-
-cerdo.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
-
-    if (lockFunctions === false) {
-        if (e.target.classList.contains('check')) {
-
-            e.target.classList.remove('check')
-
-        } else {
-            e.target.classList.add('check')
-        }
-    } // e.target.classList
-})
-
-pescado.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
-    if (lockFunctions === false) {
-        if (e.target.classList.contains('check')) {
-
-            e.target.classList.remove('check')
-
-        } else {
-            e.target.classList.add('check')
-        }
-    } // e.target.classList
-})
-
-huevo.addEventListener('click', (e) => {
-    //console.log(e.target.classList)
-
-    if (lockFunctions === false) {
-        if (e.target.classList.contains('check')) {
-
-            e.target.classList.remove('check')
-
-        } else {
-            e.target.classList.add('check')
-        }
-    } // e.target.classList
+*/
+}
+else {
+    e.target.classList.add('check')
+}
+} // e.target.classList
 })
 
 lacteos.addEventListener('click', (e) => {

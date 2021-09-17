@@ -1,35 +1,54 @@
-const API_URL = "http://ec2-18-191-185-147.us-east-2.compute.amazonaws.com/api/";
+const API_URL = "https://appeateasier.autodev.studio/api/"
 
-let user_profile_id = 0
-let my_json_list = []
+let myForm = document.querySelector('#formLogin')
 
+var myModal1 = new bootstrap.Modal(document.getElementById('myModalLogin'), { keyboard: false })
+myModal1._element.querySelector("#modal_continue").style.display = "none"
+myModal1._element.querySelector("#modal_back").style.display = "none"
 
-// USER ID INITIAL CONFIGURATION
+// Local Storage to reduce number of server´s requests
+function saveUserProfile(myJSON) {
+    localStorage.clear();
 
-let welcome = document.getElementById('user_welcome')
-
-if (localStorage.length > 1) {
-    welcome.innerText = "Hola " + localStorage.user
+    for ([key, value] of Object.entries(myJSON)) {
+        localStorage.setItem(key, value);
+        console.log("mi item key is: " + key);
+        console.log("my value is: " + value);
+    }
 }
 
-const getPlan = async() => {
-    const response = await fetch(`${API_URL}users/profiles/favorite/?search=${localStorage.id}`, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-    const data = await response.json();
-    //console.log(data);
-    return data
+function modalHandler() {
 
+    if (localStorage.length > 1) {
+        myModal1._element.querySelector('#modal_message').innerText = "BIENVENIDO !!! Por favor presiona siguiente"
+        myModal1._element.querySelector("#modal_continue").style.display = "block"
+    } else {
+        myModal1._element.querySelector('#modal_message').innerText = "Por favor revisa tus datos de nuevo"
+        myModal1._element.querySelector("#modal_back").style.display = "block"
+    }
 
-};
+}
+
+// Form Data Retrieve
+function getFormData() {
+
+    let user_profile = {}
+
+    let username = myForm.querySelector('#myUserName').value
+    let password = myForm.querySelector('#myPassword').value
+
+    user_profile = {...user_profile, username }
+    user_profile = {...user_profile, password }
+
+    return user_profile
+
+}
 
 
 // AJAX Comms to End-Point
 const postFetch = async(postData) => {
 
-    const data = await fetch(`${API_URL}api/users/profiles/planner/menu/`, {
+    const data = await fetch(`${API_URL}users/login/`, {
         method: "Post",
         headers: {
             "Content-Type": "application/json",
@@ -38,71 +57,53 @@ const postFetch = async(postData) => {
     })
 
     const dataResult = await data.json()
-    console.log("Data Result from Post Fetch: ", dataResult)
-        //saveUserProfile(dataResult) -> according to response this function would change
+
+    console.log(dataResult)
+    saveUserProfile(dataResult)
 
     return dataResult
 }
 
 
+// Event Handler
+myForm.addEventListener('submit', (e) => {
 
-const filtrarComida = async(valor) => {
-    let plan = await getPlan()
-    let recipe_titulo = document.getElementById("favorit_recipe")
-    let elementosOption = document.querySelectorAll(".elementosOption")
-    if (elementosOption.length > 0) {
-        for (let i = 0; i < elementosOption.length; i++) {
-            elementosOption[i].remove()
-        }
-    }
-    //console.log(plan)
-    const comidaFiltrada = plan.filter(comida => {
-            //console.log(comida)
-            if (comida.cat_recipe.meal_type === valor) {
+e.preventDefault()
+e.stopPropagation()
 
-                return comida
-            }
-        })
-        //console.log(comidaFiltrada)
+let userData = getFormData()
+    // console.log("Form Data Result: ", userData)
 
-    return comidaFiltrada
+let myResponse = postFetch(userData)
 
-}
-$("#tipo-desayuno").change(async() => {
-    filtrarComida($("#tipo-desayuno").val())
-        .then(function(data) {
+myResponse.then(console.log("Ajax Response Result: ", myResponse.data))
+myResponse.then(myModal1.show())
+myResponse.then(setTimeout(() => { modalHandler() }, 2000))
+myResponse.catch((error) => console.log(error))
 
-            let comidas = '<option id="recipe_title" value="elegir">Elegir receta</option>'
-            data.forEach((desayuno) => {
-                comidas += `
-            <option  
-                value="${desayuno.id }"
-                data-recipeid="${desayuno.cat_recipe.id }"
-                data-id="${desayuno.id}"
-            >${desayuno.cat_recipe.title}</option>
-            `
-            })
-            document.getElementById("desayuno-favorito").innerHTML = comidas
-        })
+//myResponse.then(console.log("SUCESS"),console.log("Something Wrong"))
+//window.location.href = "people_amount.html" // If I enable this promise its interrupted and localStorage as well
 })
 
+/* 
+-------------------------------------------------
+    Algorithm description for this ajax 
+-------------------------------------------------
 
-$("#tipo-comida").change(async() => {
-    filtrarComida($("#tipo-comida").val())
-        .then(function(data) {
+1. user data introduction into form
+2. user data validation
+3. submit btn add event listener
+4. prevent default
+5. user data into json format
+6. ajax comms to endpoint
+7. catch BE response
+8. store user ID into localstorage
+9. redirect to the next page
 
-            let comidas = '<option id="recipe_title" value="elegir">Elegir receta</option>'
-            data.forEach((comida) => {
-                comidas += `
-                <option  
-                    value="${comida.id }"
-                    data-recipeid="${comida.cat_recipe.id }"
-                    data-id="${comida.id}"
-                >${comida.cat_recipe.title}</option>
-                `
-            })
-            document.getElementById("comida-favorita").innerHTML = comidas
-        })
+*/
+})
+document.getElementById("comida-favorita").innerHTML = comidas
+})
 
 })
 

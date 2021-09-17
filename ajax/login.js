@@ -1,4 +1,4 @@
-const API_URL = "http://ec2-18-191-185-147.us-east-2.compute.amazonaws.com/api/"
+const API_URL = "https://appeateasier.autodev.studio/api/"
 
 let myForm = document.querySelector('#formLogin')
 
